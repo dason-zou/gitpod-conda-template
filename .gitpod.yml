@@ -1,0 +1,55 @@
+# Gitpod Miniconda Template
+# Using official Gitpod Python image with Miniconda
+image: gitpod/workspace-python
+
+tasks:
+  - name: Setup Conda
+    init: |
+      # Install Miniconda if not present
+      if ! command -v conda &> /dev/null; then
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+        bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+        rm /tmp/miniconda.sh
+        export PATH="$HOME/miniconda3/bin:$PATH"
+        conda init bash
+      fi
+      
+      # Source conda
+      source $HOME/miniconda3/bin/activate
+      
+      # Create environment from environment.yml if it exists
+      if test -e environment.yml; then
+        conda env create -f environment.yml || conda env update -f environment.yml --prune
+        echo "✅ Conda environment created from environment.yml"
+      else
+        # Just update base environment
+        conda update -n base -c defaults conda -y
+        echo "✅ Using base environment"
+      fi
+      
+      # Install requirements.txt if exists
+      if test -e requirements.txt; then
+        pip install -r requirements.txt
+        echo "✅ Installed packages from requirements.txt"
+      fi
+      
+    command: |
+      source $HOME/miniconda3/bin/activate
+      
+      # Auto-activate environment if environment.yml exists
+      if test -e environment.yml; then
+        env_name=$(grep '^name:' environment.yml | awk '{print $2}')
+        conda activate "$env_name" 2>/dev/null
+      fi
+      
+      clear
+      echo "🐍 Miniconda Ready!"
+      echo ""
+      echo "📦 Current environment: $(conda info --envs | grep '*' | awk '{print $1}')"
+      echo ""
+      echo "💡 Quick commands:"
+      echo "   conda env list                      - List all environments"
+      echo "   conda create -n myenv python=3.11   - Create new environment"
+      echo "   conda activate myenv                - Activate environment"
+      echo "   conda install package_name          - Install package"
+      echo ""
